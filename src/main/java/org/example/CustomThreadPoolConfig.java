@@ -3,7 +3,7 @@ package org.example;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.atomic.AtomicInteger; // Добавлен этот импорт
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CustomThreadPoolConfig {
     private final int corePoolSize;
