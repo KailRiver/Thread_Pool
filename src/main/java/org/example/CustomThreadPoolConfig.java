@@ -3,7 +3,7 @@ package org.example;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicInteger; // Добавлен этот импорт
 
 public class CustomThreadPoolConfig {
     private final int corePoolSize;
@@ -12,7 +12,7 @@ public class CustomThreadPoolConfig {
     private final TimeUnit timeUnit;
     private final int queueSize;
     private final int minSpareThreads;
-    private final RejectedExecutionHandler rejectedExecutionHandler;
+    private RejectedExecutionHandler rejectedExecutionHandler;
     private final ThreadFactory threadFactory;
     private final LoadBalancingStrategy loadBalancingStrategy;
 
@@ -39,16 +39,20 @@ public class CustomThreadPoolConfig {
     public ThreadFactory getThreadFactory() { return threadFactory; }
     public LoadBalancingStrategy getLoadBalancingStrategy() { return loadBalancingStrategy; }
 
+    public void setRejectedExecutionHandler(RejectedExecutionHandler handler) {
+        this.rejectedExecutionHandler = handler;
+    }
+
     public static class Builder {
         private int corePoolSize = 1;
         private int maxPoolSize = Runtime.getRuntime().availableProcessors();
         private long keepAliveTime = 60;
         private TimeUnit timeUnit = TimeUnit.SECONDS;
-        private int queueSize = 100;
+        private int queueSize = 10;
         private int minSpareThreads = 0;
-        private RejectedExecutionHandler rejectedExecutionHandler = new CustomCallerRunsPolicy();
-        private ThreadFactory threadFactory = new DefaultThreadFactory();
-        private LoadBalancingStrategy loadBalancingStrategy = new RoundRobinStrategy();
+        private RejectedExecutionHandler rejectedExecutionHandler;
+        private ThreadFactory threadFactory;
+        private LoadBalancingStrategy loadBalancingStrategy;
 
         public Builder corePoolSize(int corePoolSize) {
             this.corePoolSize = corePoolSize;
@@ -92,6 +96,15 @@ public class CustomThreadPoolConfig {
         }
 
         public CustomThreadPoolConfig build() {
+            if (threadFactory == null) {
+                threadFactory = new DefaultThreadFactory();
+            }
+            if (loadBalancingStrategy == null) {
+                loadBalancingStrategy = new RoundRobinStrategy();
+            }
+            if (rejectedExecutionHandler == null) {
+                rejectedExecutionHandler = new CustomCallerRunsPolicy();
+            }
             return new CustomThreadPoolConfig(this);
         }
     }
@@ -102,10 +115,12 @@ public class CustomThreadPoolConfig {
         @Override
         public Thread newThread(Runnable r) {
             Thread t = new Thread(r, "CustomPool-thread-" + threadNumber.getAndIncrement());
-            if (t.isDaemon())
+            if (t.isDaemon()) {
                 t.setDaemon(false);
-            if (t.getPriority() != Thread.NORM_PRIORITY)
+            }
+            if (t.getPriority() != Thread.NORM_PRIORITY) {
                 t.setPriority(Thread.NORM_PRIORITY);
+            }
             return t;
         }
     }
